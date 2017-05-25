@@ -3,11 +3,16 @@
 currentWorkingDirectory=$PWD
 cd /
 
-numberOfValidFiles=$(ls /var/demobackup | awk 'BEGIN {count=0} { if(0 == system("date -d " $0 " >/dev/null")){count++;} } END {print(count)}')
+thisDate=$(date | awk '{printf "%s-%s-%s-%s",$1,$2,$3,$6}')
+mkdir -p /var/demobackup/${thisDate}
+tar -cf var/demobackup/${thisDate}/demo.tar root/demo
 
 
-if (( $numberOfValidFiles > 6 )); then
-	validFiles=(`ls /var/demobackup | awk '{if(0 == system("date -d " $0 ">/dev/null"))print($0)}'`)
+numberOfValidFiles=$(ls /var/demobackup | awk 'BEGIN {count=0} { if(0 == system("date -d " $0 " >/dev/null 2>/dev/null")){count++;} } END {print(count)}')
+
+
+while (( $numberOfValidFiles > 7 )); do
+	validFiles=(`ls /var/demobackup | awk '{if(0 == system("date -d " $0 " >/dev/null 2>/dev/null"))print($0)}'`)
 	lowest="zero"
 	for i in "${validFiles[@]}"; do
 		if (( lowest == "zero" )); then
@@ -21,15 +26,15 @@ if (( $numberOfValidFiles > 6 )); then
 			fi
 		fi
 	done
-	rm /var/demobackup/$lowest
-fi
+	rm -r /var/demobackup/$lowest
+
+	numberOfValidFiles=$(ls /var/demobackup | awk 'BEGIN {count=0} { if(0 == system("date -d " $0 " >/dev/null 2>/dev/null")){count++;} } END {print(count)}')
+
+done
 
 
 
 
-thisDate=$(date | awk '{printf "%s-%s-%s-%s",$1,$2,$3,$6}')
-mkdir -p /var/demobackup/${thisDate}
-tar -cf var/demobackup/${thisDate}/demo.tar root/demo
 
 
 
